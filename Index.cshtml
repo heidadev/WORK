@@ -1,0 +1,571 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<script src="~/Js/jquery.min.js"></script>
+<link href="~/Librerias/bootstrap-datetimepicker-master/css/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+<script src="~/Librerias/bootstrap-datetimepicker-master/js/bootstrap-datetimepicker.min.js" charset="UTF-8"></script>
+<script src="~/Librerias/bootstrap-datetimepicker-master/locales/bootstrap-datetimepicker.es.js"></script>
+
+
+<script>
+
+    function soloNumeros(e) {
+        var key = window.Event ? e.which : e.keyCode
+        return (key >= 48 && key <= 57)
+    }
+
+    function toggleFields() {
+        var arr = ['3', '4', '5'];
+        var value = $("#chosenmove1").val();
+
+        if (jQuery.inArray(value, arr) > -1)
+            $("#hideme").show();
+        else
+            $("#hideme").hide();
+    }
+
+</script>
+
+<div id="appSPA">
+    <div class="page-bar">
+        <div class="page-title-breadcrumb">
+            <div class="pull-left">
+                <div class="page-title">Solicitud de Personal Administrativo</div>
+            </div>
+
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12 col-sm-12">
+            <div class="card card-box">
+                <div class="card-head">
+                    <header>Búsqueda de Solicitud</header>
+                    <button id="panel-button6" class="mdl-button mdl-js-button mdl-button--icon pull-right" data-upgraded=",MaterialButton">
+                        @*<i class="fas fa-search"></i>*@
+                    </button>
+
+                </div>
+                <div class="card-body " id="bar-parent5">
+
+                    <form class="form-horizontal" data-vv-scope="formSolicitudPersonal">
+                        
+                        <div class="form-group row">
+                            <div class="col-lg-3 col-md-3 col-sm-3 col-xs-3">
+                                <label>Desde</label>
+                                <input size="30" id="fechadesde" class="form-control" type="text" value="" v-model="fechaDesde" readonly="" v-bind:disabled="habilitaNRQ" v-validate="'required|date_format:DD/MM/YYYY'">
+                            </div>
+
+                            <div class="col-lg-3 col-md-3 col-sm-3 col-xs-3">
+                                <label>Hasta</label>
+                                <input size="30" id="fechahasta" class="form-control" type="text" value="" v-model="fechaHasta" readonly="" v-bind:disabled="habilitaNRQ" v-validate="'required|date_format:DD/MM/YYYY'">
+                            </div>
+
+                            <div class="col-lg-3 col-md-3 col-sm-3 col-xs-3">
+                                <label> Área </label>
+                                <select class="form-control select2 select2-hidden-accessible" tabindex="-1" aria-hidden="true" name="areaSearch" v-model="areaSearch" v-on:change="ObtenerCentroCostoSearch" v-bind:disabled="habilitaNRQ">
+                                    <option value="" selected="selected">--- Seleccionar ---</option>
+                                    <option v-for="item in listaAreasSearch" v-bind:value="item.codigo_area">{{item.descripcion_area}}</option>
+                                </select>
+                            </div>
+
+                            <div class="col-lg-3 col-md-3 col-sm-3 col-xs-3">
+                                <label> Sub Área </label>
+                                <select class="form-control select2 select2-hidden-accessible" tabindex="-1" aria-hidden="true" name="centro_costoSearch" v-model="centro_costoSearch" v-on:change="Obtener_CargoSearch" v-bind:disabled="habilitaNRQ">
+                                    <option value="" selected="selected">--- Seleccionar ---</option>
+                                    <option v-for="item in listaCentroCostosSearch" v-bind:value="item.codigo_centro_costo">{{item.descripcion_centro_costo}}</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <div class="col-lg-3 col-md-3 col-sm-3 col-xs-3">
+                                <label> Cargo </label>
+                                <select class="form-control select2 select2-hidden-accessible" tabindex="-1" aria-hidden="true" name="cargoSearch" v-model="cargoSearch" v-bind:disabled="habilitaNRQ">
+                                    <option value="" selected="selected">--- Seleccionar ---</option>
+                                    <option v-for="item in listaCargosSearch" v-bind:value="item.codigo_cargo">{{item.descripcion_cargo}}</option>
+                                </select>
+                            </div>
+
+                            <div class="col-lg-3 col-md-3 col-sm-3 col-xs-3">
+                                <label> Estado </label>
+                                <select class="form-control select2 select2-hidden-accessible" tabindex="-1" aria-hidden="true" name="estado" v-model="estado" v-bind:disabled="habilitaNRQ">
+                                    <option value="" selected="selected">--- Seleccionar ---</option>
+                                    <option v-for="item in listaEstados" v-bind:value="item.codigo_multitabla" v-if="item.codigo_multitabla != 23 && item.codigo_multitabla != 28 && item.codigo_multitabla != 29 && item.codigo_multitabla != 31">{{item.descripcion_tabla}}</option>
+                                </select>
+                            </div>
+
+                            <div class="col-lg-3 col-md-3 col-sm-3 col-xs-3">
+                                <div>
+                                    <input type="checkbox" id="habilitaNRQ" v-model="habilitaNRQ" v-on:change="habilitarInputsSearch()">
+                                    <label for="habilitaNRQ">
+                                        Requerimiento
+                                    </label>
+                                </div>
+
+                                <input type="text" class="form-control" id="horizontalFormText" name="nRQSearch" v-model="nRQSearch" v-bind:disabled="!habilitaNRQ" v-validate="habilitaNRQ ? 'required' : ''" v-bind:class="{'is-invalid': errors.has('formSolicitudPersonal.nRQSearch') }">
+                                <p v-show="errors.has('formSolicitudPersonal.nRQSearch')" class="text-danger font-size-12">{{errors.first('formSolicitudPersonal.nRQSearch') }}</p>
+
+                            </div>
+                        </div>
+
+
+                        <div class="form-group row">
+                            <div class="col-lg-3 col-md-3 col-sm-3 col-xs-3 text-right">
+
+                            </div>
+                            <div class="col-lg-3 col-md-3 col-sm-3 col-xs-3 text-right">
+                                <button type="submit" v-on:click.prevent="buscarSolicitud" class="btn btn-primary">Buscar Solicitud</button>
+                            </div>
+
+                            <div class="col-lg-3 col-md-3 col-sm-3 col-xs-3 text-left">
+                                <button type="submit" class="btn btn-primary" v-on:click.prevent="nuevaSolicitud">Nueva Solicitud</button>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <div class="col-sm-12">
+                                <div class="table-responsive">
+                                    <template>
+                                        <b-table striped hover small :fields="headTable" :items="listaSolicitud" :current-page="currentPage" :per-page="perPage" thead-class="tableHead">
+                                            <template slot="accion" slot-scope="row">
+                                                <button type="button" class="btn btn-warning btn-xs" v-b-tooltip.hover title="Mostrar Detalle" v-on:click.prevent="detalleSolicitud(row.item)">
+                                                    <i class="fas fa-file"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-primary btn-xs" v-b-tooltip.hover title="Editar" v-on:click.prevent="obtenerDatosSolicitud(row.item)" v-bind:disabled="row.item.edicion != true || row.item.estado == 'Aprobado'">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            </template>
+                                        </b-table>
+                                        <b-pagination size="sm" :total-rows="listaSolicitud.length" :per-page="perPage" v-model="currentPage">
+                                        </b-pagination>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="modal fade" id="SPAModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" data-backdrop="static" data-keyboard="false">
+            <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title text-primary" id="exampleModalLabel">Formulario Solicitud de Personal Administrativo</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">×</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form class="form-horizontal" id="formRegistroSolicitud" data-vv-scope="formRegistroSolicitud">
+                            <div class="row">
+
+                                <div class="col-sm-5">
+                                    <div class="form-group row mb-1">
+                                        <label class="col-sm-4 form-control-label col-form-label-sm"> Motivo vacante: </label>
+                                        <div class="col-sm-8">
+                                            <select class="form-control select2 select2-hidden-accessible form-control-sm" tabindex="-1" aria-hidden="true" name="motivovacante" v-model="motivoVacante" v-validate="'required'" v-bind:class="{'is-invalid': errors.has('formRegistroSolicitud.motivovacante') }" v-on:change="habilitarNombrePersonalCesado()">
+                                                <option value="" selected="selected">--- Seleccionar ---</option>
+                                                <option v-for="item in listaMotivosVacante" v-bind:value="item.codigo_multitabla">{{item.descripcion_tabla}}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group row mb-1">
+                                        <div class="col-sm-12">
+                                            <input type="text" class="form-control rounded-0 form-control-sm" placeholder="Ingresar nombre del personal cesado" v-bind:disabled="habilitaNombrePersonalCesado" onpaste="return false;" name="nombreEmpleado" v-model="nombreEmpleado" v-validate="'required'" v-bind:class="{'is-invalid': errors.has('formRegistroSolicitud.nombreEmpleado') }" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group row mb-1">
+                                        <label class="col-sm-4  form-control-label col-form-label-sm"> Fecha Ingreso: </label>
+                                        <div class="col-sm-8">
+                                            <input id="fechaingreso" class="form-control form-control-sm" name="fechaIngreso" v-model="fechaIngreso" type="text" readonly="" v-validate="'required|date_format:DD/MM/YYYY'" v-bind:class="{'is-invalid': errors.has('formRegistroSolicitud.fechaIngreso') }">
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-1" v-if="seenRQ">
+                                        <label class="col-md-4 form-control-label col-form-label-sm">N° RQ: </label>
+                                        <div class="col-sm-8">
+                                            <div class="input-group input-group-md">
+                                                <input type="text" class="form-control imput-sm" id="RQ" name="RQ" v-bind:disabled="textoButton == 'Guardar Cambios'" v-model="nRQ" v-validate="'required'" v-bind:class="{'is-invalid': errors.has('formRegistroSolicitud.RQ') }" disabled />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row  mb-1">
+                                        <div class="col-sm-12">
+                                            <textarea class="form-control form-control-sm" rows="2" id="observacionSolicitud" placeholder="Observación (Indicar el detalle de la solicitud)" style="height:95%; resize:none; font-size: 9pt; padding-bottom: 90px;" v-model="observacionSolicitud" name="observacionSolicitud" v-validate="'required'" v-bind:class="{'is-invalid': errors.has('formRegistroSolicitud.observacionSolicitud') }"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-7">
+                                    <div class="panel">
+                                        <header class="panel-heading panel-heading-blue">
+                                            ...
+                                        </header>
+                                        <div class="panel-body">
+                                            <div class="row mb-1">
+                                                <label class="col-sm-2 form-control-label col-form-label-sm"> Área: </label>
+                                                <div class="col-sm-10">
+                                                    <select class="form-control select2 select2-hidden-accessible form-control-sm" tabindex="-1" aria-hidden="true" name="area" v-model="area" v-on:change="ObtenerCentroCosto" v-validate="'required'" v-bind:class="{'is-invalid': errors.has('formRegistroSolicitud.area') }">
+                                                        <option value="" selected="selected">--- Seleccionar ---</option>
+                                                        <option v-for="item in listaAreas" v-bind:value="item.codigo_area">{{item.descripcion_area}}</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div class="row mb-1">
+                                                <label class="col-sm-2 form-control-label col-form-label-sm"> Sub Área: </label>
+                                                <div class="col-sm-6">
+                                                    <select class="form-control select2 select2-hidden-accessible form-control-sm" tabindex="-1" aria-hidden="true" name="centro_costo" v-model="centro_costo" v-on:change="Obtener_Cargo" v-validate="'required'" v-bind:class="{'is-invalid': errors.has('formRegistroSolicitud.centro_costo') }">
+                                                        <option value="" selected="selected">--- Seleccionar ---</option>
+                                                        <option v-for="item in listaCentroCostos" v-bind:value="item.codigo_centro_costo">{{item.descripcion_centro_costo}}</option>
+                                                    </select>
+                                                </div>
+
+                                                <div class="col-sm-4">
+                                                    <input id="ceco" name="ceco" v-model="ceco" type="text" class="form-control input-sm" placeholder="" disabled>
+                                                </div>
+                                            </div>
+
+                                            <div class="row mb-1">
+                                                <label class="col-sm-2 form-control-label col-form-label-sm"> Cargo: </label>
+                                                <div class="col-sm-10">
+                                                    <select class="form-control select2 select2-hidden-accessible form-control-sm" tabindex="-1" aria-hidden="true" name="cargo" v-model="cargo" v-validate="'required'" v-bind:class="{'is-invalid': errors.has('formRegistroSolicitud.cargo') }">
+                                                        <option value="" selected="selected">--- Seleccionar ---</option>
+                                                        <option v-for="item in listaCargos" v-bind:value="item.codigo_cargo">{{item.descripcion_cargo}}</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group row mb-1" v-if="false">
+                                                <label class="col-md-2 form-control-label col-form-label-sm">Sueldo: </label>
+                                                <div class="col-sm-4">
+                                                    <div class="input-group input-group-md">
+                                                        <bage class="badge badge-primary">S/.</bage>
+                                                        <input type="text" class="form-control rounded-0 form-control-sm" onpaste="return false;" onkeypress="return soloNumeros(event)" name="remuneracion" v-model="remuneracion" />
+                                                    </div>
+                                                </div>
+
+                                                <label class="col-md-2 form-control-label col-form-label-sm">Variable: </label>
+                                                <div class="col-sm-4">
+                                                    <div class="input-group input-group-md">
+                                                        <bage class="badge badge-primary">S/.</bage>
+                                                        <input type="text" class="form-control rounded-0 form-control-sm" onpaste="return false;" onkeypress="return soloNumeros(event)" name="variable" v-model="variable" />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group row mb-1">
+                                                <label class="col-md-2 form-control-label col-form-label-sm">Archivo: </label>
+                                                <div class="col-sm-10" v-show="!mostrarFileInput">
+                                                    <div class="input-group input-group-md">
+                                                        <input type="text" class="form-control rounded-0 " v-model="nombreArchivoDet" disabled>
+                                                        <span class="input-group-btn ">
+                                                            <button type="submit" class="btn btn-primary rounded-0 " v-b-tooltip.hover title="Descargar" style="padding-bottom: 5px;padding-top: 5px;" v-on:click.prevent="descargarSustento"><i class="icon wb-download" aria-hidden="true"></i></button>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div class="col-sm-10" v-show="mostrarFileInput">
+                                                    <b-form-file class="form-control-file is-invalid" style="font-size:small;" v-model="file" ref="fileinput" name="file" v-validate="mostrarFileInput ? 'required' : ''" v-bind:class="{'is-invalid': errors.has('formRegistroSolicitud.file') }" plain></b-form-file>
+                                                    <p v-show="errors.has('formRegistroSolicitud.file')" class="text-danger" style="font-size:70%;">{{errors.first('formRegistroSolicitud.file') }}</p>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group row mb-1">
+                                                <div class="col-sm-2" v-show="textoButton == 'Guardar Cambios'">
+                                                </div>
+                                                <div class="col-sm-10" v-show="textoButton == 'Guardar Cambios'">
+                                                    <div class="checkbox-custom checkbox-primary checkbox-sm">
+                                                        <input type="checkbox" id="cambiarArchivo" v-model="mostrarFileInput" v-on:change="cambiarArchivoSustento">
+                                                        <label for="cambiarArchivo" class="font-size-8">Cambiar Archivo de Sustento</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-12">
+                                    <div class="panel">
+                                        <header class="panel-heading panel-heading-blue">
+                                            Datos del Contacto
+                                        </header>
+                                        <div class="panel-body">
+                                            <div class="row mb-1">
+                                                <label class="col-sm-1 form-control-label col-form-label-sm"> Nombre: </label>
+                                                <div class="col-sm-4">
+                                                    <input type="text" class="form-control rounded-0 form-control-sm" onpaste="return false;" name="nombreContacto" v-model="nombreContacto" v-validate="'required'" v-bind:class="{'is-invalid': errors.has('formRegistroSolicitud.nombreContacto') }" />
+                                                </div>
+                                                <label class="col-sm-1 form-control-label col-form-label-sm"> Cargo: </label>
+                                                <div class="col-sm-3">
+                                                    <input type="text" class="form-control rounded-0 form-control-sm" onpaste="return false;" name="cargoContacto" v-model="cargoContacto" v-validate="'required'" v-bind:class="{'is-invalid': errors.has('formRegistroSolicitud.cargoContacto') }" />
+                                                </div>
+                                                <label class="col-sm-1 form-control-label col-form-label-sm"> Anexo: </label>
+                                                <div class="col-sm-2">
+                                                    <input type="text" class="form-control rounded-0 form-control-sm" onpaste="return false;" onkeypress="return soloNumeros(event)" name="anexoContacto" v-model="anexoContacto" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-warning" data-dismiss="modal">Cerrar</button>
+
+                        <button id="botonGA" type="button" class="btn btn-primary" v-on:click.prevent="guardar">
+                            {{textoButton}}
+                        </button>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="modal fade modal-fade-in-scale-up" id="modalDetalleSolicitud" aria-hidden="true" role="dialog" tabindex="-1" data-backdrop="static" data-keyboard="false">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="panel-heading panel-heading-gray custom-tab">
+                        <h4 class="modal-title text-primary" id="exampleModalLabel"></h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">×</span>
+                        </button>
+
+                        <ul class="nav nav-tabs">
+                            <li class="nav-item">
+                                <a class="nav-link active" data-toggle="tab" href="#exampleLine1" aria-controls="exampleLine1" role="tab">
+                                    <i class="fas fa-file-alt"></i>
+                                    Detalle de Solicitud
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" data-toggle="tab" href="#exampleLine2" aria-controls="exampleLine2" role="tab">
+                                    <i class="fas fa-list-ul"></i>
+                                    Historial de Solicitud
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="modal-body form-horizontal">
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="exampleLine1" role="tabpanel">
+                                <div class="row mb-2">
+                                    <div class="col-sm-5">
+                                        <div class="form-group row mb-1">
+                                            <label class="col-sm-4 form-control-label col-form-label-sm"> Motivo vacante: </label>
+                                            <div class="col-sm-8">
+                                                <input type="text" class="form-control rounded-0 form-control-sm" v-model="motivoDet" v-bind:disabled="deshabilitar" />
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group row mb-1">
+                                            <div class="col-sm-12">
+                                                <input type="text" class="form-control rounded-0 form-control-sm" v-bind:disabled="deshabilitar" v-model="nombreEmpleadoDet" />
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group row mb-1">
+                                            <label class="col-sm-4 form-control-label col-form-label-sm"> Fecha Ingreso: </label>
+                                            <div class="col-sm-8">
+                                                <input type="text" class="form-control rounded-0 form-control-sm" v-model="fechaIngresoDet" v-bind:disabled="deshabilitar" />
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group row mb-1">
+                                            <label class="col-md-4 form-control-label col-form-label-sm">N° RQ: </label>
+                                            <div class="col-sm-4">
+                                                <div class="input-group input-group-md">
+                                                    <input type="text" class="form-control rounded-0 form-control-sm" v-model="nRQDet" v-bind:disabled="deshabilitar" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row  mb-1">
+                                            <div class="col-sm-12">
+                                                <textarea class="form-control rounded-0 form-control-sm" style="resize:none; font-size: 9pt; padding-bottom: 65px;" rows="1" v-model="observacionDet" v-bind:disabled="deshabilitar"></textarea>
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                    <div class="col-sm-7">
+                                        <div class="panel">
+                                            <header class="panel-heading panel-heading-blue">
+                                                ...
+                                            </header>
+                                            <div class="panel-body">
+                                                <div class="row mb-1">
+                                                    <label class="col-sm-2 form-control-label col-form-label-sm"> Área: </label>
+                                                    <div class="col-sm-10">
+                                                        <input type="text" class="form-control rounded-0 form-control-sm" v-model="areaDet" v-bind:disabled="deshabilitar" />
+                                                    </div>
+                                                </div>
+
+                                                <div class="row mb-1">
+                                                    <label class="col-sm-2 form-control-label col-form-label-sm"> Sub Área: </label>
+                                                    <div class="col-sm-7">
+                                                        <input type="text" class="form-control rounded-0 form-control-sm" v-model="centro_costoDet" v-bind:disabled="deshabilitar" />
+                                                    </div>
+
+                                                    <div class="col-sm-3">
+                                                        <input type="text" class="form-control rounded-0 form-control-sm" v-model="cecoDet" v-bind:disabled="deshabilitar" />
+                                                    </div>
+                                                </div>
+
+                                                <div class="row mb-1">
+                                                    <label class="col-sm-2 form-control-label col-form-label-sm"> Cargo: </label>
+                                                    <div class="col-sm-10">
+                                                        <input type="text" class="form-control rounded-0 form-control-sm" v-model="cargoDet" v-bind:disabled="deshabilitar" />
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group row mb-1" v-if="false">
+                                                    <label class="col-md-2 form-control-label col-form-label-sm">Sueldo: </label>
+                                                    <div class="col-sm-4">
+                                                        <div class="input-group input-group-md">
+                                                            <bage class="badge badge-primary">S/.</bage>
+                                                            <input type="text" class="form-control rounded-0 form-control-sm" v-model="remuneracionDet" v-bind:disabled="deshabilitar" />
+                                                        </div>
+                                                    </div>
+
+                                                    <label class="col-md-2 form-control-label col-form-label-sm">Variable: </label>
+                                                    <div class="col-sm-4">
+                                                        <div class="input-group input-group-md">
+                                                            <bage class="badge badge-primary">S/.</bage>
+                                                            <input type="text" class="form-control rounded-0 form-control-sm" v-model="variableDet" v-bind:disabled="deshabilitar" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group row mb-1">
+                                                    <label class="col-md-2 form-control-label col-form-label-sm">Archivo: </label>
+                                                    <div class="col-sm-8">
+                                                        <input type="text" class="form-control rounded-0 form-control-sm" name="" v-model="nombreArchivoDet" v-bind:disabled="deshabilitar">
+                                                    </div>
+                                                    <div class="col-sm-2">
+                                                        <span class="input-group-btn">
+                                                            <button type="submit" class="btn btn-primary rounded-0" style="padding-right: 14px;padding-bottom: 1px;" v-on:click.prevent="descargarSustento">
+                                                                <i class="fas fa-download"></i>
+                                                            </button>
+                                                        </span>
+                                                    </div>
+
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-12">
+                                        <div class="panel">
+                                            <header class="panel-heading panel-heading-blue">
+                                                Datos del Contacto
+                                            </header>
+                                            <div class="panel-body">
+                                                <div class="row mb-1">
+                                                    <label class="col-sm-1 form-control-label col-form-label-sm"> Nombre: </label>
+                                                    <div class="col-sm-4">
+                                                        <input type="text" class="form-control rounded-0 form-control-sm" v-model="nombreContactoDet" v-bind:disabled="deshabilitar" />
+                                                    </div>
+                                                    <label class="col-sm-1 form-control-label col-form-label-sm"> Cargo: </label>
+                                                    <div class="col-sm-3">
+                                                        <input type="text" class="form-control rounded-0 form-control-sm" v-model="cargoContactoDet" v-bind:disabled="deshabilitar" />
+                                                    </div>
+                                                    <label class="col-sm-1 form-control-label col-form-label-sm"> Anexo: </label>
+                                                    <div class="col-sm-2">
+                                                        <input type="text" class="form-control rounded-0 form-control-sm" v-model="anexoContactoDet" v-bind:disabled="deshabilitar" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                            <div class="tab-pane" id="exampleLine2" role="tabpanel">
+                                <div class="form-group row ">
+                                    <div class="col-sm-12 text-left">
+                                        <div style="overflow-y:auto; overflow-x:hidden; height: 381px;">
+
+                                            <ul class="list-group list-group-dividered">
+                                                <li class="list-group-item" v-for="item in historialSolicitud">
+                                                    <div class="media">
+                                                        <div class="pr-0 pr-sm-20 align-self-center">
+                                                            <div class="avatar avatar-online">
+                                                                <img src="~/Imagenes/avatar1_64X64.png" alt="...">
+                                                                <i class="avatar avatar-busy"></i>
+                                                            </div>
+                                                        </div>
+                                                        <div class="media-body align-self-center" style="color:#005CFF">
+                                                            <h5 @*class="mt-0 mb-5"*@>
+                                                                <strong class="text-uppercase" style="font-weight: bold">{{item.estado}} por:</strong>  {{item.nombre_usuario_asignado}}
+                                                                <span class="float-right badge badge-round badge-info">{{item.estado}}</span>
+                                                            </h5>
+
+                                                            <div>
+                                                                <strong><i class="icon icon-color wb-small-point" style="font-weight: bold; font-size:small" aria-hidden="true"></i>AREA:</strong>
+                                                                {{item.area_usuario_asignado}}
+                                                            </div>
+                                                            <div>
+                                                                <strong><i class="icon icon-color wb-small-point" style="font-weight: bold" aria-hidden="true"></i>CARGO: </strong>
+                                                                {{item.cargo_usuario_asignado}}
+                                                            </div>
+                                                            <div>
+                                                                <strong v-if="item.estado == 'Generado'"><i class="icon icon-color wb-small-point" aria-hidden="true" style="font-weight: bold"></i>GENERADO EL: </strong>
+                                                                <strong v-else><i class="icon icon-color wb-small-point" aria-hidden="true" style="font-weight: bold"></i>RECIBIDO EL: </strong>
+                                                                {{item.fecha_asignado}}
+                                                            </div>
+                                                            <div v-show="item.fecha_valida">
+                                                                <strong><i class="icon icon-color wb-small-point" aria-hidden="true" style="font-weight: bold"></i>VALIDADO EL: </strong>
+                                                                {{item.fecha_valida}}
+                                                            </div>
+                                                            <div class="content card card-default" v-show="item.observacion" style="font-weight: bold">
+                                                                <div class="card-block">
+                                                                    {{item.observacion}}.
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                    </div>
+                                                </li>
+
+                                            </ul>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-warning" data-dismiss="modal">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Inicio VueJs -->
+<script src="~/VueJs/vue.min.js"></script>
+<script src="~/VueJs/Librerias/HttpClient/axios.min.js"></script>
+<script src="~/VueJs/Librerias/veeValidate/vee-validate.js"></script>
+<script src="~/Frameworks/bootstrap-vue/bootstrap-vue.js"></script>
+<script src="~/VueJs/Librerias/veeValidate/Locale/es.js"></script>
+<script src="~/VueJs/Modulos/SPAdministrativo.js"></script>
+<!-- Fin VueJs -->
+
